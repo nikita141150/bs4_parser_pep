@@ -107,18 +107,18 @@ def pep(session):
         for td_next_tag in td_tags_with_a_tags:
             link = td_next_tag['href']
             pep_url = urljoin(PEP_URL, link)
-            dl_tag = find_tag(
-                get_soup(session, pep_url),
-                'dl', attrs={'class': 'rfc2822 field-list simple'}
-            )
-            dd_tag = find_tag(
-                dl_tag, 'dt', attrs={'class': 'field-even'}
-            ).find_next_sibling('dd')
-            status_personal_page = dd_tag.string
-            pep_statuses_count[status_personal_page] += 1
-            status_pep_general_table = find_tag(
-                tr_tag, 'td').string[1:]
             try:
+                dl_tag = find_tag(
+                    get_soup(session, pep_url),
+                    'dl', attrs={'class': 'rfc2822 field-list simple'}
+                )
+                dd_tag = find_tag(
+                    dl_tag, 'dt', attrs={'class': 'field-even'}
+                ).find_next_sibling('dd')
+                status_personal_page = dd_tag.string
+                pep_statuses_count[status_personal_page] += 1
+                status_pep_general_table = find_tag(
+                    tr_tag, 'td').string[1:]
                 if status_personal_page not in (
                         EXPECTED_STATUS[status_pep_general_table]):
                     if len(status_pep_general_table) > 2 or (
