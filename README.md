@@ -46,3 +46,6 @@ python main.py [вариант парсера] -o pretty
 ```bash
 python main.py [вариант парсера] -o file
 ```
+
+### Автор
+- [Сорин Никита](https://github.com/nikita141150)
