@@ -28,21 +28,22 @@ def whats_new(session):
         session, whats_new_url
     ).select_one(
         '#what-s-new-in-python div.toctree-wrapper'
-        ).select(
-            'li.toctree-l1'
-        )
+    ).select(
+        'li.toctree-l1'
+    )
     results = [('Ссылка на статью', 'Заголовок', 'Редактор, Автор')]
     for section in tqdm(sections_by_python):
-        version_link = urljoin(
-            whats_new_url, section.find('a')['href']
-        )
         try:
+            version_link = urljoin(
+                whats_new_url, section.find('a')['href']
+            )
             soup = get_soup(session, version_link)
-            h1 = find_tag(soup, 'h1')
-            dl = find_tag(soup, 'dl')
-            dl_text = dl.text.replace('\n', ' ')
-            results.append((version_link, h1.text, dl_text))
-        except RuntimeError:
+            results.append((
+                version_link,
+                find_tag(soup, 'h1').text,
+                find_tag(soup, 'dl').text.replace('\n', ' ')
+                ))
+        except ConnectionError:
             continue
     return results
 
@@ -97,21 +98,12 @@ def pep(session):
     """
     Парсер для вывода документов PEP
     """
-    section_tag = find_tag(
-        get_soup(session, PEP_URL),
-        'section',
-        attrs={'id': 'numerical-index'}
-    )
-    tbody_tag = find_tag(section_tag, 'tbody')
-    tr_tags = tbody_tag.find_all('tr')
-    pep_status_count = defaultdict(int)
-    total_pep_count = 0
+    tr_tags = get_soup(session, PEP_URL).select('#numerical-index tbody tr')
+    pep_statuses_count = defaultdict(int)
     unexpected_vallues = []
     for tr_tag in tqdm(tr_tags):
         td_tags_with_a_tags = find_tag(
             tr_tag, 'td').find_next_sibling('td')
-        total_pep_count += 1
-
         for td_next_tag in td_tags_with_a_tags:
             link = td_next_tag['href']
             pep_url = urljoin(PEP_URL, link)
@@ -123,6 +115,7 @@ def pep(session):
                 dl_tag, 'dt', attrs={'class': 'field-even'}
             ).find_next_sibling('dd')
             status_personal_page = dd_tag.string
+            pep_statuses_count[status_personal_page] += 1
             status_pep_general_table = find_tag(
                 tr_tag, 'td').string[1:]
             try:
@@ -141,12 +134,12 @@ def pep(session):
             except ParserFindTagException:
                 continue
             else:
-                pep_status_count[status_personal_page] += 1
+                pep_statuses_count[status_personal_page] += 1
     logging.info(unexpected_vallues)
     return [
         ('Статус', 'Количество'),
-        *pep_status_count.items(),
-        ('Total', total_pep_count),
+        *pep_statuses_count.items(),
+        ('Total', sum(pep_statuses_count.values())),
     ]
 
 
@@ -172,8 +165,7 @@ def main():
         session = requests_cache.CachedSession()
         if args.clear_cache:
             session.cache.clear()
-        parser_mode = args.mode
-        results = MODE_TO_FUNCTION[parser_mode](session)
+        results = MODE_TO_FUNCTION[args.mode](session)
         if results is not None:
             control_output(results, args)
     except Exception:
