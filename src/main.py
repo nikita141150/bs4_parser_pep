@@ -142,6 +142,7 @@ def pep(session):
                 continue
             else:
                 pep_status_count[status_personal_page] += 1
+    logging.info(unexpected_vallues)
     return [
         ('Статус', 'Количество'),
         *pep_status_count.items(),
