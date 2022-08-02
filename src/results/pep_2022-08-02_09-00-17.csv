@@ -1,4 +1,4 @@
-"Cтатус","Количество"
+"Статус","Количество"
 "Active","23"
 "Superseded","9"
 "Withdrawn","45"
@@ -66,4 +66,4 @@
 "Irit Katriel","1"
 "Mark Dickinson <dickinsm at gmail.com>","1"
 "Python-3000 list","4"
-"Total: ","594"
+"Total","594"
